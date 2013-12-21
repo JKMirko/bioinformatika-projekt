@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 
-public class MinimuslikeOverlapGraphFormatter extends OverlapGraphFormatter {
+public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter {
 
 	@Override
 	public OverlapGraph overlapGraphFromFile(File file) throws IOException {
