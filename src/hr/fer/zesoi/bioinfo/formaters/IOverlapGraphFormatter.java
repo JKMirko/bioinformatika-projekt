@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 
-public abstract class OverlapGraphFormatter {
+public interface IOverlapGraphFormatter {
 	
 	/**
 	 * Reads and creates an OverlapGraph object from given file
@@ -14,7 +14,7 @@ public abstract class OverlapGraphFormatter {
 	 * @return Newly created OverlapGraph object
 	 * @throws IOException throws an exception if a reading error occurs
 	 */
-	public abstract OverlapGraph overlapGraphFromFile(File file) throws IOException;
+	OverlapGraph overlapGraphFromFile(File file) throws IOException;
 	
 	/**
 	 * Formats and writes a given OverlapGrap to given Writer
@@ -22,5 +22,5 @@ public abstract class OverlapGraphFormatter {
 	 * @param writer Writer to write to
 	 * @throws IOException throws an exception if a writing error occurs
 	 */
-	public abstract void formatAndWriteOverlapGraph(OverlapGraph graph, Writer writer) throws IOException;
+	void formatAndWriteOverlapGraph(OverlapGraph graph, Writer writer) throws IOException;
 }

@@ -1,6 +1,6 @@
 import hr.fer.zesoi.bioinfo.Unitigging;
 import hr.fer.zesoi.bioinfo.formaters.MinimuslikeOverlapGraphFormatter;
-import hr.fer.zesoi.bioinfo.formaters.OverlapGraphFormatter;
+import hr.fer.zesoi.bioinfo.formaters.IOverlapGraphFormatter;
 import hr.fer.zesoi.bioinfo.models.OverlapGraph;
 
 import java.io.BufferedWriter;
@@ -48,7 +48,7 @@ public class Starter {
 				}
 				
 				//create a formatter to use
-				OverlapGraphFormatter formatter = new MinimuslikeOverlapGraphFormatter();
+				IOverlapGraphFormatter formatter = new MinimuslikeOverlapGraphFormatter();
 				
 				//read the input overlap graph
 				OverlapGraph inputOverlapGraph = null;
