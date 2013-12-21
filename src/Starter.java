@@ -1,3 +1,8 @@
+import hr.fer.zesoi.bioinfo.Unitigging;
+import hr.fer.zesoi.bioinfo.formaters.MinimuslikeOverlapGraphFormatter;
+import hr.fer.zesoi.bioinfo.formaters.OverlapGraphFormatter;
+import hr.fer.zesoi.bioinfo.models.OverlapGraph;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -35,19 +40,34 @@ public class Starter {
 					try {
 						outputWriter = new BufferedWriter(new FileWriter(outputFile, false));
 					} catch (IOException e) {
-						System.out.println("Error while getting a connection to output file!");
+						System.err.println("Error while getting a connection to output file!");
 						return;
 					}
 				}else{
 					outputWriter = new BufferedWriter(new PrintWriter(System.out));
 				}
 				
-				//test, change this with some real code after
+				//create a formatter to use
+				OverlapGraphFormatter formatter = new MinimuslikeOverlapGraphFormatter();
+				
+				//read the input overlap graph
+				OverlapGraph inputOverlapGraph = null;
 				try {
-					outputWriter.write("Test test");
+					inputOverlapGraph = formatter.overlapGraphFromFile(inputFile);
+				} catch (IOException e1) {
+					System.err.println("Error while reading from the input file!");
+					return;
+				}
+				//simplify the graph
+				OverlapGraph simplifiedGraph = Unitigging.simplifiedOverlapGraphFromGraph(inputOverlapGraph);
+				
+				//write it to output
+				try {
+					formatter.formatAndWriteOverlapGraph(simplifiedGraph, outputWriter);
 					outputWriter.flush();
-				} catch (IOException e) {
+				} catch (IOException e1) {
 					System.err.println("Error while writing to output!");
+					return;
 				}
 			}
 		}
