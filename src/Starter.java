@@ -21,6 +21,7 @@ public class Starter {
 	 *  If this argument is not provided, the unitig layout will be written to the standard output
 	 */
 	public static void main(String[] args) {
+		//TODO ubaci jos jedan argument - datoteka gdje su readovi
 		if(args.length == 0){
 			//invalid parameters, write appropriate message
 			System.out.println("Invalid arguments!\nAvailable arguments:\n[REQUIRED] 1st argument - path to file containing overlap information\n[OPTIONAL] 2nd argument - path to file in witch the unitig layout will be written");
@@ -50,10 +51,13 @@ public class Starter {
 				//create a formatter to use
 				IOverlapGraphFormatter formatter = new MinimuslikeOverlapGraphFormatter();
 				
+				//
+				File readsFile = new File("testData/reads.2k.10x.fasta");
+				
 				//read the input overlap graph
 				OverlapGraph inputOverlapGraph = null;
 				try {
-					inputOverlapGraph = formatter.overlapGraphFromFile(inputFile);
+					inputOverlapGraph = formatter.overlapGraphFromOverlapFileAndReadsFile(inputFile, readsFile);
 				} catch (IOException e1) {
 					System.err.println("Error while reading from the input file!");
 					return;

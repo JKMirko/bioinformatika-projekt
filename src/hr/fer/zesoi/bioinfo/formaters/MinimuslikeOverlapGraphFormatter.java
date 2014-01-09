@@ -1,6 +1,8 @@
 package hr.fer.zesoi.bioinfo.formaters;
 
+import hr.fer.zesoi.bioinfo.models.Edge;
 import hr.fer.zesoi.bioinfo.models.OverlapGraph;
+import hr.fer.zesoi.bioinfo.models.Read;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,14 +10,20 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter {
 
 	private BufferedReader reader;
-
+	
 	@Override
-	public OverlapGraph overlapGraphFromFile(File file) throws IOException {
-		reader = new BufferedReader(new FileReader(file));
+	public OverlapGraph overlapGraphFromOverlapFileAndReadsFile(
+			File overlapsFile, File readsFile) throws IOException,
+			FormatterException {
+		List<Edge> edgesFromFile = new LinkedList<Edge>();
+		HashMap<Integer, Integer> containedReads = new HashMap<Integer, Integer>();
+		reader = new BufferedReader(new FileReader(overlapsFile));
 		String currentLine = null;
 		//map used for storing data for current reads
 		//since some of the fields can be multiline, we cannot store the values directly after every read
@@ -33,7 +41,11 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 				if(currentMapKey != null){
 					currentReadMap.put(currentMapKey, currentMapValue);
 				}
-				this.readObjectFromMap(currentReadMap);
+				
+				Edge edge = this.getEdgeFromMap(currentReadMap, containedReads);
+				if(edge != null){
+					edgesFromFile.add(edge);
+				}
 			}else if(currentLine.matches("[a-z][a-z][a-z]:.*")){
 				//start of a new key-pair value
 				//store old key=value pair
@@ -53,17 +65,137 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		}
 		//close the reader
 		reader.close();
-		return null;
+		
+		//got the edges, read the reads now
+		//prepare the storage
+		HashMap<Integer, Read> readMap = new HashMap<Integer, Read>();
+		reader = new BufferedReader(new FileReader(readsFile));
+		String readLine = null;
+		boolean isLineOdd = true;
+		while((readLine = reader.readLine()) != null){
+			if(isLineOdd){
+				//read info
+				//example : >small/reads.2k.10x_000000000_000000001_L000001549:000000029-000001577:F
+				String[] splitted = readLine.split("_");
+				try {
+					int id = Integer.parseInt(splitted[splitted.length - 2]);
+					int length = Integer.parseInt(splitted[splitted.length -1].split(":")[0].substring(1));
+					
+					readMap.put(new Integer(id), new Read(id, length));
+				} catch (Exception e) {
+					throw new FormatterException("Invalid read info format!");
+				}
+			}
+			isLineOdd = !isLineOdd;
+		}
+		
+		reader.close();
+		
+		//connect the edges and reads
+		for(Edge edge : edgesFromFile){
+			Integer idA = new Integer(edge.getIdA());
+			Integer idB = new Integer(edge.getIdB());
+			//do not add edges for contained reads - same as removing them
+			if(containedReads.containsKey(idA) || containedReads.containsKey(idB)){
+				continue;
+			}
+			Read a = readMap.get(idA);
+			Read b = readMap.get(idB);
+			//calculate the edge length
+			edge.setLength(( (a.getLength() - edge.getHangA()) + (b.getLength() - edge.getHangB()) )/2);
+			//add edge to reads
+			a.addEdge(edge);
+			b.addEdge(edge);
+		}
+
+//		int mozda = 0;
+//		for(Read read : readMap.values()){
+//			if(read.getEdges().size() == 0 && !containmentReadsIDs.contains(new Integer(read.getId()))){
+//				mozda++;
+//			}
+//		}
+		
+//		
+//		for(Edge edge : edgesFromFile){
+//			System.out.println(edge);
+//		}
+		
+//		System.out.println("Total : "+readMap.size());
+//		System.out.println("check "+containmentReadsIDs.size());
+//		System.out.println("Mozda "+mozda);
+//		System.out.println("Bega "+containedReads.size());
+		return new OverlapGraph(readMap, containedReads);
 	}
 	
-	private Object readObjectFromMap(HashMap<String, String> readMap) throws FormatterException{
+	private Edge getEdgeFromMap(HashMap<String, String> readMap, HashMap<Integer, Integer> containedReads) throws FormatterException{
 		
 		int ahg = this.intFromMap("ahg", readMap);
 		int bhg = this.intFromMap("bhg", readMap);
 		
-		//do something
+		//get reads ids
+		String[] splitted = readMap.get("rds").split(",");
+		Integer idA = Integer.parseInt(splitted[0]);
+		Integer idB = Integer.parseInt(splitted[1]);
 		
-		return null;
+		//remove reads that represent contaiment
+		if(ahg * bhg <= 0){
+			//add the edge to set
+			if(idA == 103 || idB == 103) System.out.println(ahg + " : "+bhg);
+			if(ahg <= 0){
+				containedReads.put(idA, idB);
+			}else{
+				containedReads.put(idB, idA);
+			}
+			return null;
+		}
+			
+		boolean sufA = false;
+		boolean sufB = false;
+		String adj = readMap.get("adj");
+		//get sufs
+		if(adj.equals("N")){
+			if(ahg > 0 && bhg > 0){
+				sufA = true;
+				sufB = false;
+			}else{
+				sufA = false;
+				sufB = true;
+			}
+		}else if(adj.equals("A")){
+			if(ahg > 0 && bhg > 0){
+				sufA = false;
+				sufB = true;
+			}else{
+				sufA = true;
+				sufB = false;
+			}
+		}else if(adj.equals("I")){
+			if(ahg > 0 && bhg > 0){
+				sufA = true;
+				sufB = true;
+			}else{
+				sufA = false;
+				sufB = false;
+			}
+		}else if(adj.equals("O")){
+			if(ahg > 0 && bhg > 0){
+				sufA = false;
+				sufB = false;
+			}else{
+				sufA = true;
+				sufB = true;
+			}
+		}else{
+			throw new FormatterException("Excpected \"N\",\"A\",\"I\" or \"O\" for adj, got \""+adj+"\"");
+		}
+		
+		
+		if(splitted.length != 2){
+			throw new FormatterException("Overlap requires 2 reads!");
+		}
+		
+		return new Edge(idA, idB, Math.abs(ahg), Math.abs(bhg), sufA, sufB);
+		
 	}
 	
 	private int intFromMap(String key, HashMap<String, String> map) throws FormatterException{
@@ -80,5 +212,7 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		// TODO Auto-generated method stub
 		
 	}
+
+	
 
 }
