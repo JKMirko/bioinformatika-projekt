@@ -1,6 +1,5 @@
 package hr.fer.zesoi.bioinfo.formaters;
 
-import hr.fer.zesoi.bioinfo.models.Chunk;
 import hr.fer.zesoi.bioinfo.models.Edge;
 import hr.fer.zesoi.bioinfo.models.OverlapGraph;
 import hr.fer.zesoi.bioinfo.models.Read;
@@ -9,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -113,6 +111,13 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		return new OverlapGraph(readMap, containedReads);
 	}
 	
+	/**
+	 * Creates an Edge from the information contained in the provided map, or stores the read id to the contained reads map
+	 * @param readMap Map containing the values needed to create the Edge
+	 * @param containedReads Map of contained reads in witch to store the contained reads
+	 * @return newly created edge, or null if the edge represents containment. I the return value is null, the contained read id is stored in the contained reads map
+	 * @throws FormatterException throws a FormatterException if the info in the read map is invalid, or some of the information is missing
+	 */
 	private Edge getEdgeFromMap(HashMap<String, String> readMap, HashMap<Integer, Integer> containedReads) throws FormatterException{
 		
 		int ahg = this.intFromMap("ahg", readMap);
@@ -184,6 +189,13 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		
 	}
 	
+	/**
+	 * Reads an integer from a map
+	 * @param key Key under witch the wanted string is stored
+	 * @param map Map containing the wanted value as a String under the key - key
+	 * @return parsed int value
+	 * @throws FormatterException Throws a FormatterException if the value is not stored in the map, or the value cannot be parsed as an int
+	 */
 	private int intFromMap(String key, HashMap<String, String> map) throws FormatterException{
 		try {
 			return Integer.parseInt(map.get(key));
@@ -192,27 +204,30 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		}
 	}
 
+	
 	@Override
-	public void formatAndWriteOverlapGraph(OverlapGraph graph, Writer writer)
-			throws IOException {
-		PrintWriter printWriter = new PrintWriter(writer);
-		for(Chunk chunk : graph.getChunkMap().values()){
-			printWriter.println("{LAY");
-			List<Read> reads = chunk.getReads();
-			for(int readIterator = 0; readIterator < reads.size(); readIterator++){
-				if(readIterator == chunk.getReads().size()){
-					//last read
-				}else{
-					//determine the orientation
-					int nextReadId = reads.get(readIterator + 1).getId();
-					Edge edgeConnectingWithTheNextEdge = null;
-					
-				}
-			}
-			printWriter.println("}");
-		}
-		printWriter.close();
+	public void formatAndWriteOverlapGraph(OverlapGraph graph,
+			Writer layoutInformationWriter, Writer overlapInformationWriter)
+			throws IOException, FormatterException {
+//		PrintWriter printWriter = new PrintWriter(writer);
+//		for(Chunk chunk : graph.getChunkMap().values()){
+//			printWriter.println("{LAY");
+//			List<Read> reads = chunk.getReads();
+//			for(int readIterator = 0; readIterator < reads.size(); readIterator++){
+//				if(readIterator == chunk.getReads().size()){
+//					//last read
+//				}else{
+//					//determine the orientation
+//					int nextReadId = reads.get(readIterator + 1).getId();
+//					Edge edgeConnectingWithTheNextEdge = null;
+//					
+//				}
+//			}
+//			printWriter.println("}");
+//		}
+//		printWriter.close();
 	}
+
 
 	
 

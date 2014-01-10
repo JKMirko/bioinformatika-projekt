@@ -15,14 +15,20 @@ public class Unitigging {
 	private static final double epsilon = 0.1;
 	private static final double alpha = 3;
 	
+	/**
+	 * Simplifies the provided graph by removing transitive edges and merging reads into chunks.
+	 * Note that the input Graph cannot contain reads that are contained by others.
+	 * @param graphToSimplitfy Graph to simplify
+	 * @return the simplified graph
+	 */
 	public static OverlapGraph simplifiedOverlapGraphFromGraph(OverlapGraph graphToSimplitfy){
 		//step 2
 		//transitive edge removal
 		HashMap<Integer, Read> readMap = graphToSimplitfy.getReadMap();
 		
-		//for each read
+		//for each read, get the f,g and h
 		for(Read f : readMap.values()){
-			//reverse 
+			//reverse for easier removal
 			for(int tauCounter = f.getEdges().size() - 1; tauCounter >= 0; tauCounter--){
 				Edge tau = f.getEdges().get(tauCounter);
 				Read g = readMap.get(tau.getOtherId(f.getId()));
@@ -55,6 +61,7 @@ public class Unitigging {
 			for(int removalCounter = read.getEdges().size() - 1; removalCounter >= 0; removalCounter --){
 				Edge edgeToRemove = read.getEdges().get(removalCounter);
 				if(edgeToRemove.shouldBeRemoved){
+					//remove from both edges
 					readMap.get(new Integer(edgeToRemove.getIdA())).removeEdge(edgeToRemove);
 					readMap.get(new Integer(edgeToRemove.getIdB())).removeEdge(edgeToRemove);
 				}
@@ -62,7 +69,7 @@ public class Unitigging {
 		}
 		//lets play with chunks
 		//every Read is a chunk!
-		//every chunk will have the same id as its initial read
+		//every chunk will have the same id as its initial read thus ensuring that they are mutualy unique
 		HashMap<Integer, Chunk> chunkMap = new HashMap<Integer, Chunk>();
 		List<Integer> chunkIds = new ArrayList<Integer>();
 		for(Read read : readMap.values()){
@@ -85,6 +92,7 @@ public class Unitigging {
 			//go trough every edge in the current chunk
 			for(int edgeIterator = 0; edgeIterator < chunk.getEdges().size(); edgeIterator++){
 				boolean canMergeChunks = true;
+				//check the merging conditions
 				Edge edge = chunk.getEdges().get(edgeIterator);
 				for(Edge edgeInTheTheLeftChunk : chunkMap.get(new Integer(edge.getIdA())).getEdges()){
 					if(edgeInTheTheLeftChunk == edge){
@@ -107,11 +115,14 @@ public class Unitigging {
 						break;
 					}
 				}
+				//can merge them, do it
 				if(canMergeChunks){
 					Chunk a = chunkMap.get(edge.getIdA());
 					Chunk b = chunkMap.get(edge.getIdB());
 					a.mergeWithChunkOnEdge(b, edge);
+					//remove the chunk that we meged into another
 					chunkMap.remove(new Integer(b.getId()));
+					//since we removed the current edge, go back one step
 					edgeIterator--;
 				}
 			}
@@ -121,6 +132,13 @@ public class Unitigging {
 		return graphToSimplitfy;
 	}
 	
+	/**
+	 * Checks if a value is within bounds
+	 * @param value Value to check
+	 * @param from Lower bound
+	 * @param to Upper bound
+	 * @return Result
+	 */
 	private static boolean valueWithinValues(double value, double from, double to){
 		return value >= from && value <= to;
 	}

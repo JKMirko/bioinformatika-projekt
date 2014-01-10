@@ -1,4 +1,5 @@
 import hr.fer.zesoi.bioinfo.Unitigging;
+import hr.fer.zesoi.bioinfo.formaters.FormatterException;
 import hr.fer.zesoi.bioinfo.formaters.MinimuslikeOverlapGraphFormatter;
 import hr.fer.zesoi.bioinfo.formaters.IOverlapGraphFormatter;
 import hr.fer.zesoi.bioinfo.models.OverlapGraph;
@@ -16,63 +17,114 @@ public class Starter {
 	/**
 	 * @param args - argument
 	 *  first argument - required - path to file containing overlap information
-	 *  second argument - optional - path to file in witch the unitig layout will be written. 
+	 *  second argument - required - path to file containing reads infomration
+	 *  Optional arguments:
+	 *  Unitig layout file path - you can specify a path to a file in witch the unitig layout will be written.
 	 *  If the file exists, it will be overwritten, if not, it will be created.
 	 *  If this argument is not provided, the unitig layout will be written to the standard output
+	 *  Use -oLayout=filepath to specify this argument
+	 *  Unitig layout overlaps file path - you can specify a path to a file in witch the ovelap information from the unitig layout will be written.
+	 *  The same writing rules as in the unitig layout file path argument apply;
+	 *  Use -oOverlaps=filepath to specify this argument
 	 */
 	public static void main(String[] args) {
-		//TODO ubaci jos jedan argument - datoteka gdje su readovi
-		if(args.length == 0){
-			//invalid parameters, write appropriate message
-			System.out.println("Invalid arguments!\nAvailable arguments:\n[REQUIRED] 1st argument - path to file containing overlap information\n[OPTIONAL] 2nd argument - path to file in witch the unitig layout will be written");
-		}else{
-			//has parameters, check validity
-			String inputFilePath = args[0];
-			File inputFile = new File(inputFilePath);
-			if(!inputFile.exists() || inputFile.isDirectory()){
-				//invalid file path
-				System.out.println("Invalid input file path \""+inputFilePath+"\"!");
+		//get the needed parameters
+		String overlapInformationFilePath = null;
+		String readsInformationFilePath = null;
+		String outputLayoutFilePath = null;
+		String outputOverlapsFilePath = null;
+		
+		for(int argumentIterator = 0; argumentIterator < args.length; argumentIterator++){
+			if(argumentIterator == 0){
+				//first argument - overlap information file path
+				overlapInformationFilePath = args[argumentIterator];
+			}else if(argumentIterator == 1){
+				//second argument - reads infomration
+				readsInformationFilePath = args[argumentIterator];
 			}else{
-				//ok, get the output stream to file if the output file path is provided, use standard output otherwise
-				BufferedWriter outputWriter = null;
-				if(args.length >= 2){
-					String outputFileName = args[1];
-					File outputFile = new File(outputFileName);
-					try {
-						outputWriter = new BufferedWriter(new FileWriter(outputFile, false));
-					} catch (IOException e) {
-						System.err.println("Error while getting a connection to output file!");
-						return;
+				//optional arguments
+				String argumentString = args[argumentIterator];
+				int indexOfEquals = argumentString.indexOf("=");
+				if(argumentString.startsWith("-") && indexOfEquals != -1){
+					//valid optional parameter
+					String argumentName = argumentString.substring(1, indexOfEquals).toLowerCase();
+					if(argumentName.equals("olayout")){
+						outputLayoutFilePath = argumentString.substring(indexOfEquals + 1);
+					}else if(argumentName.equals("ooverlaps")){
+						outputOverlapsFilePath = argumentString.substring(indexOfEquals + 1);
 					}
-				}else{
-					outputWriter = new BufferedWriter(new PrintWriter(System.out));
 				}
-				
-				//create a formatter to use
-				IOverlapGraphFormatter formatter = new MinimuslikeOverlapGraphFormatter();
-				
-				//
-				File readsFile = new File("testData/reads.2k.10x.fasta");
-				
-				//read the input overlap graph
-				OverlapGraph inputOverlapGraph = null;
+			}
+		}
+		if(overlapInformationFilePath == null){
+			System.out.println("Missing overlap information file path!");
+		}else if(readsInformationFilePath == null){
+			System.out.println("Missing reads information file path");
+		}else{
+			//got required parameters
+			File overlapsInputFile = new File(overlapInformationFilePath);
+			if(!overlapsInputFile.exists() || overlapsInputFile.isDirectory()){
+				System.out.println("Invalid overlaps information file!");
+				return;
+			}
+			File readsInputFile = new File(readsInformationFilePath);
+			if(!readsInputFile.exists() || readsInputFile.isDirectory()){
+				System.out.println("Invalid reads information file!");
+			}
+			
+			//get output streams
+			BufferedWriter layoutWriter = null;
+			if(outputLayoutFilePath != null){
+				//the user specified the layout file
 				try {
-					inputOverlapGraph = formatter.overlapGraphFromOverlapFileAndReadsFile(inputFile, readsFile);
-				} catch (IOException e1) {
-					System.err.println("Error while reading from the input file!");
+					layoutWriter = new BufferedWriter(new FileWriter(new File(outputLayoutFilePath), false));
+				} catch (IOException e) {
+					System.err.println("Error while getting a connection to layout output file!");
 					return;
 				}
-				//simplify the graph
-				OverlapGraph simplifiedGraph = Unitigging.simplifiedOverlapGraphFromGraph(inputOverlapGraph);
-				
-				//write it to output
+			}else{
+				layoutWriter = new BufferedWriter(new PrintWriter(System.out));
+			}
+			
+			BufferedWriter overlapWriter = null;
+			if(outputOverlapsFilePath != null){
+				//the user specified the layout file
 				try {
-					formatter.formatAndWriteOverlapGraph(simplifiedGraph, outputWriter);
-					outputWriter.flush();
-				} catch (IOException e1) {
-					System.err.println("Error while writing to output!");
+					overlapWriter = new BufferedWriter(new FileWriter(new File(overlapInformationFilePath), false));
+				} catch (IOException e) {
+					System.err.println("Error while getting a connection to overlap output file!");
 					return;
 				}
+			}else{
+				overlapWriter = new BufferedWriter(new PrintWriter(System.out));
+			}
+			
+			//got all needed information, start the procedure
+			//create a formatter to use
+			IOverlapGraphFormatter formatter = new MinimuslikeOverlapGraphFormatter();
+			
+			//read the input overlap graph
+			OverlapGraph inputOverlapGraph = null;
+			try {
+				inputOverlapGraph = formatter.overlapGraphFromOverlapFileAndReadsFile(overlapsInputFile, readsInputFile);
+			} catch (IOException ioException) {
+				System.err.println("Error while reading from the input file! ");
+				return;
+			}catch (FormatterException formatterException) {
+				System.err.println("Input file contains an error - \""+formatterException.getMessage()+"\"");
+				return;
+			}
+			//simplify the graph
+			OverlapGraph simplifiedGraph = Unitigging.simplifiedOverlapGraphFromGraph(inputOverlapGraph);
+			
+			//write it to output
+			try {
+				formatter.formatAndWriteOverlapGraph(simplifiedGraph, layoutWriter, overlapWriter);
+				layoutWriter.flush();
+				overlapWriter.flush();
+			} catch (IOException e1) {
+				System.err.println("Error while writing to output!");
+				return;
 			}
 		}
 	}

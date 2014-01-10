@@ -21,9 +21,10 @@ public interface IOverlapGraphFormatter {
 	/**
 	 * Formats and writes a given OverlapGrap to given Writer
 	 * @param graph Graph to format and write
-	 * @param writer Writer to write to
+	 * @param layoutInformationWriter Writer to write the layout information to
+	 * @param overlapInformationWriter Writer to write the overlap information to
 	 * @throws IOException throws an exception if a writing error occurs
 	 * @throws FormatterException throws an formatter exception if any format specific problem occur
 	 */
-	void formatAndWriteOverlapGraph(OverlapGraph graph, Writer writer) throws IOException, FormatterException;
+	void formatAndWriteOverlapGraph(OverlapGraph graph, Writer layoutInformationWriter, Writer overlapInformationWriter) throws IOException, FormatterException;
 }
