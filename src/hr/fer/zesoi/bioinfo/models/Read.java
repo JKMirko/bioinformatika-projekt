@@ -36,6 +36,10 @@ public class Read {
 		return edges;
 	}
 	
+	public void clearEdges(){
+		this.edges.clear();
+	}
+	
 	@Override
 	public int hashCode() {
 		return this.id;

@@ -1,5 +1,6 @@
 package hr.fer.zesoi.bioinfo.formaters;
 
+import hr.fer.zesoi.bioinfo.models.Chunk;
 import hr.fer.zesoi.bioinfo.models.Edge;
 import hr.fer.zesoi.bioinfo.models.OverlapGraph;
 import hr.fer.zesoi.bioinfo.models.Read;
@@ -8,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -108,22 +110,6 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 			b.addEdge(edge);
 		}
 
-//		int mozda = 0;
-//		for(Read read : readMap.values()){
-//			if(read.getEdges().size() == 0 && !containmentReadsIDs.contains(new Integer(read.getId()))){
-//				mozda++;
-//			}
-//		}
-		
-//		
-//		for(Edge edge : edgesFromFile){
-//			System.out.println(edge);
-//		}
-		
-//		System.out.println("Total : "+readMap.size());
-//		System.out.println("check "+containmentReadsIDs.size());
-//		System.out.println("Mozda "+mozda);
-//		System.out.println("Bega "+containedReads.size());
 		return new OverlapGraph(readMap, containedReads);
 	}
 	
@@ -209,8 +195,23 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 	@Override
 	public void formatAndWriteOverlapGraph(OverlapGraph graph, Writer writer)
 			throws IOException {
-		// TODO Auto-generated method stub
-		
+		PrintWriter printWriter = new PrintWriter(writer);
+		for(Chunk chunk : graph.getChunkMap().values()){
+			printWriter.println("{LAY");
+			List<Read> reads = chunk.getReads();
+			for(int readIterator = 0; readIterator < reads.size(); readIterator++){
+				if(readIterator == chunk.getReads().size()){
+					//last read
+				}else{
+					//determine the orientation
+					int nextReadId = reads.get(readIterator + 1).getId();
+					Edge edgeConnectingWithTheNextEdge = null;
+					
+				}
+			}
+			printWriter.println("}");
+		}
+		printWriter.close();
 	}
 
 	

@@ -34,6 +34,14 @@ public class Edge {
 		return idB;
 	}
 
+	public void setIdA(int idA) {
+		this.idA = idA;
+	}
+
+	public void setIdB(int idB) {
+		this.idB = idB;
+	}
+
 	public int getHangA() {
 		return hangA;
 	}
