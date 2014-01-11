@@ -26,6 +26,10 @@ public class Starter {
 	 *  Unitig layout overlaps file path - you can specify a path to a file in witch the ovelap information from the unitig layout will be written.
 	 *  The same writing rules as in the unitig layout file path argument apply;
 	 *  Use -oOverlaps=filepath to specify this argument
+	 *  Epsilon - real number value in [0,1] interval used in the transitive edge removal. defaults to 0.1
+	 *  Use -epsilon=value to specify this argument
+	 *  Alpha - positive integer value constant used in the transitive edge removal, defaults to 3
+	 *  user -alpha=value to specify this argument
 	 */
 	public static void main(String[] args) {
 		//get the needed parameters
@@ -33,6 +37,10 @@ public class Starter {
 		String readsInformationFilePath = null;
 		String outputLayoutFilePath = null;
 		String outputOverlapsFilePath = null;
+		//transitive edges removal parameter
+		double epsilon = 0.1;
+		int alpha = 3;
+		
 		
 		for(int argumentIterator = 0; argumentIterator < args.length; argumentIterator++){
 			if(argumentIterator == 0){
@@ -52,6 +60,28 @@ public class Starter {
 						outputLayoutFilePath = argumentString.substring(indexOfEquals + 1);
 					}else if(argumentName.equals("ooverlaps")){
 						outputOverlapsFilePath = argumentString.substring(indexOfEquals + 1);
+					}else if(argumentName.equals("epsilon")){
+						try {
+							epsilon = Double.parseDouble(argumentString.substring(indexOfEquals + 1));
+							if(epsilon < 0 || epsilon > 1){
+								System.out.println("Epsilon must be in the [0,1] interval!");
+								return;
+							}
+						} catch (NumberFormatException e) {
+							System.out.println("Epsilon must be a real number value!");
+							return;
+						}
+					}else if(argumentName.equals("alpha")){
+						try {
+							alpha = Integer.parseInt(argumentString.substring(indexOfEquals + 1));
+							if(alpha < 0){
+								System.out.println("Alpha must be a positive value!");
+								return;
+							}
+						} catch (NumberFormatException e) {
+							System.out.println("Alpha must be an integer!");
+							return;
+						}
 					}
 				}
 			}
@@ -115,13 +145,11 @@ public class Starter {
 				return;
 			}
 			//simplify the graph
-			OverlapGraph simplifiedGraph = Unitigging.simplifiedOverlapGraphFromGraph(inputOverlapGraph);
+			OverlapGraph simplifiedGraph = Unitigging.simplifiedOverlapGraphFromGraphWithParameters(inputOverlapGraph, epsilon, alpha);
 			
 			//write it to output
 			try {
 				formatter.formatAndWriteOverlapGraph(simplifiedGraph, layoutWriter, overlapWriter);
-				layoutWriter.flush();
-				overlapWriter.flush();
 			} catch (IOException e1) {
 				System.err.println("Error while writing to output!");
 				return;

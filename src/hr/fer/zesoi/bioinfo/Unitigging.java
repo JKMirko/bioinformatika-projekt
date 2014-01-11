@@ -11,17 +11,13 @@ import java.util.List;
 
 public class Unitigging {
 	
-	
-	private static final double epsilon = 0.1;
-	private static final double alpha = 3;
-	
 	/**
 	 * Simplifies the provided graph by removing transitive edges and merging reads into chunks.
 	 * Note that the input Graph cannot contain reads that are contained by others.
 	 * @param graphToSimplitfy Graph to simplify
 	 * @return the simplified graph
 	 */
-	public static OverlapGraph simplifiedOverlapGraphFromGraph(OverlapGraph graphToSimplitfy){
+	public static OverlapGraph simplifiedOverlapGraphFromGraphWithParameters(OverlapGraph graphToSimplitfy, double epsilon, int alpha){
 		//step 2
 		//transitive edge removal
 		HashMap<Integer, Read> readMap = graphToSimplitfy.getReadMap();
