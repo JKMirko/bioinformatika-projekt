@@ -10,8 +10,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter {
 
@@ -22,7 +24,11 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 			File overlapsFile, File readsFile) throws IOException,
 			FormatterException {
 		List<Edge> edgesFromFile = new LinkedList<Edge>();
-		HashMap<Integer, Integer> containedReads = new HashMap<Integer, Integer>();
+		//see OverlapGraph for key-value details
+		HashMap<Integer, List<Edge>> containmentInfo = new HashMap<Integer, List<Edge>>();
+		//set for storing id of the reads that are contained by another read
+		Set<Integer> containedReadsIds = new HashSet<Integer>();
+		
 		reader = new BufferedReader(new FileReader(overlapsFile));
 		String currentLine = null;
 		//map used for storing data for current reads
@@ -42,7 +48,7 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 					currentReadMap.put(currentMapKey, currentMapValue);
 				}
 				
-				Edge edge = this.getEdgeFromMap(currentReadMap, containedReads);
+				Edge edge = this.getEdgeFromMap(currentReadMap, containmentInfo, containedReadsIds);
 				if(edge != null){
 					edgesFromFile.add(edge);
 				}
@@ -67,8 +73,10 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		reader.close();
 		
 		//got the edges, read the reads now
-		//prepare the storage
+		//prepare the storage for reads
 		HashMap<Integer, Read> readMap = new HashMap<Integer, Read>();
+		//differentiate the contained reads from the start
+		HashMap<Integer, Read> containedReads = new HashMap<Integer, Read>();
 		reader = new BufferedReader(new FileReader(readsFile));
 		String readLine = null;
 		boolean isLineOdd = true;
@@ -78,10 +86,13 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 				//example : >small/reads.2k.10x_000000000_000000001_L000001549:000000029-000001577:F
 				String[] splitted = readLine.split("_");
 				try {
-					int id = Integer.parseInt(splitted[splitted.length - 2]);
+					Integer id = Integer.parseInt(splitted[splitted.length - 2]);
 					int length = Integer.parseInt(splitted[splitted.length -1].split(":")[0].substring(1));
-					
-					readMap.put(new Integer(id), new Read(id, length));
+					if(containedReadsIds.contains(id)){
+						containedReads.put(id, new Read(id.intValue(), length));
+					}else{
+						readMap.put(id, new Read(id.intValue(), length));
+					}
 				} catch (Exception e) {
 					throw new FormatterException("Invalid read info format!");
 				}
@@ -95,10 +106,12 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		for(Edge edge : edgesFromFile){
 			Integer idA = new Integer(edge.getIdA());
 			Integer idB = new Integer(edge.getIdB());
+//			System.out.println("Edge : "+edge);
 			//do not add edges for contained reads - same as removing them
-			if(containedReads.containsKey(idA) || containedReads.containsKey(idB)){
+			if(containedReadsIds.contains(idA) || containedReadsIds.contains(idB)){
 				continue;
 			}
+//			System.out.println("Adding");
 			Read a = readMap.get(idA);
 			Read b = readMap.get(idB);
 			//calculate the edge length
@@ -108,34 +121,64 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 			b.addEdge(edge);
 		}
 
-		return new OverlapGraph(readMap, containedReads);
+		//separate the reads into different sets
+		HashMap<Integer, Read> readsInGraph = new HashMap<Integer, Read>();
+		List<Read> isolatedReads = new LinkedList<Read>();
+		//consider making this more memory efficient - memory spike could happen here
+		for(Read read : readMap.values()){
+			if(read.getEdges().size() == 0){
+				//isolated read
+				isolatedReads.add(read);
+			}else{
+				//connected read
+				readsInGraph.put(new Integer(read.getId()), read);
+			}
+		}
+		
+		return new OverlapGraph(readsInGraph, containedReads, containmentInfo, isolatedReads);
 	}
 	
 	/**
-	 * Creates an Edge from the information contained in the provided map, or stores the read id to the contained reads map
+	 * Creates an Edge from the information contained in the provided map, or stores the containment info to the containers
 	 * @param readMap Map containing the values needed to create the Edge
-	 * @param containedReads Map of contained reads in witch to store the contained reads
-	 * @return newly created edge, or null if the edge represents containment. I the return value is null, the contained read id is stored in the contained reads map
+	 * @param containmentInfo Map in witch to store the containment info - the Edge that represents the containment
+	 * @param containedReadsIds Set in witch the store the ID of the read that is contained by another read
+	 * @return newly created edge, or null if the edge represents containment. 
+	 * If the return value is null, the containment info is added to the list, and the contained id is stored in the set
 	 * @throws FormatterException throws a FormatterException if the info in the read map is invalid, or some of the information is missing
 	 */
-	private Edge getEdgeFromMap(HashMap<String, String> readMap, HashMap<Integer, Integer> containedReads) throws FormatterException{
+	private Edge getEdgeFromMap(HashMap<String, String> readMap, HashMap<Integer, List<Edge>> containmentInfo, Set<Integer> containedReadsIds) throws FormatterException{
 		
 		int ahg = this.intFromMap("ahg", readMap);
 		int bhg = this.intFromMap("bhg", readMap);
 		
 		//get reads ids
+		String rdsVale = readMap.get("rds");
+		if(rdsVale == null){
+			throw new FormatterException("Missing \"rds\" parameter!");
+		}
 		String[] splitted = readMap.get("rds").split(",");
-		Integer idA = Integer.parseInt(splitted[0]);
-		Integer idB = Integer.parseInt(splitted[1]);
+		if(splitted.length != 2){
+			throw new FormatterException("\"rds\" parameter must contaiin 2 read ids separated by \",\"");
+		}
+		Integer idA = null;
+		Integer idB = null;
 		
-		//remove reads that represent contaiment
+		try {
+			idA = Integer.parseInt(splitted[0]);
+			idB = Integer.parseInt(splitted[1]);
+		} catch (NumberFormatException e) {
+			throw new FormatterException("Read ids in the \"rds\" paramamter must be integers!");
+		}
+		
+		//remove edges that represent containment
 		if(ahg * bhg <= 0){
 			//add the edge to set
-			if(idA == 103 || idB == 103) System.out.println(ahg + " : "+bhg);
+			//TODO add containment data calculations
 			if(ahg <= 0){
-				containedReads.put(idA, idB);
+				containedReadsIds.add(idA);
 			}else{
-				containedReads.put(idB, idA);
+				containedReadsIds.add(idB);
 			}
 			return null;
 		}

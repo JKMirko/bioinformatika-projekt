@@ -1,40 +1,76 @@
 package hr.fer.zesoi.bioinfo.models;
 
 import java.util.HashMap;
-
-
+import java.util.List;
 
 public class OverlapGraph {
 		
-	//key read ID, value Read
-	private HashMap<Integer, Read> readMap;
-	//key - id of the contained read, value - id of the read that contains
-	private HashMap<Integer, Integer> containments;
-	//key - id, value - chunk
-	private HashMap<Integer, Chunk> chunkMap;
+	/**
+	 * Holds non-contained reads that are interconnected with each other
+	 * Key - Read id
+	 * Value - Read
+	 */
+	private HashMap<Integer, Read> readsInGraph;
+	/**
+	 * Holds the reads that are contained by some other read in the graph
+	 * Key - Read id
+	 * Value Read
+	 */
+	private HashMap<Integer, Read> containedReads;
+	/**
+	 * Holds the containment information..
+	 * Key - id of the read that contains others
+	 * Value - list of edges that represent that containment
+	 */
+	private HashMap<Integer, List<Edge>> containmentInfo;
+	/**
+	 * List of reads that are not connected in the input ovelap graph
+	 */
+	private List<Read> isolatedReads;
+	/**
+	 * Holds the chunks generated from the reads contained in readsInGraph
+	 * Key - Chunk id
+	 * Value - Chunk
+	 */
+	private HashMap<Integer, Chunk> chunksInGraph;
 	
-	public OverlapGraph(HashMap<Integer, Read> readMap,
-			HashMap<Integer, Integer> containments) {
+	public OverlapGraph(HashMap<Integer, Read> readsInGraph,
+			HashMap<Integer, Read> containedReads,
+			HashMap<Integer, List<Edge>> containmentInfo,
+			List<Read> isolatedReads) {
 		super();
-		this.readMap = readMap;
-		this.containments = containments;
+		this.readsInGraph = readsInGraph;
+		this.containedReads = containedReads;
+		this.containmentInfo = containmentInfo;
+		this.isolatedReads = isolatedReads;
 	}
 
-	public HashMap<Integer, Read> getReadMap() {
-		return readMap;
+	public HashMap<Integer, Read> getReadsInGraph() {
+		return readsInGraph;
 	}
 
-	public HashMap<Integer, Integer> getContainments() {
-		return containments;
+	public HashMap<Integer, Read> getContainedReads() {
+		return containedReads;
 	}
 
-	public HashMap<Integer, Chunk> getChunkMap() {
-		return chunkMap;
+	public HashMap<Integer, List<Edge>> getContainmentInfo() {
+		return containmentInfo;
 	}
 
-	public void setChunkMap(HashMap<Integer, Chunk> chunkMap) {
-		this.chunkMap = chunkMap;
+	public List<Read> getIsolatedReads() {
+		return isolatedReads;
 	}
+
+	public HashMap<Integer, Chunk> getChunksInGraph() {
+		return chunksInGraph;
+	}
+
+	public void setChunksInGraph(HashMap<Integer, Chunk> chunksInGraph) {
+		this.chunksInGraph = chunksInGraph;
+	}
+	
+	
+	
 	
 	
 }

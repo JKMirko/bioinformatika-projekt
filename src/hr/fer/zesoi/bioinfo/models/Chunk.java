@@ -35,7 +35,6 @@ public class Chunk {
 		//get the reads
 		Read rightReadInThisChunk = this.reads.get(this.reads.size() - 1);
 		Read leftInOther = chunk.reads.get(0);
-		
 		//establish a connection between them, reuse the edge
 		edge.setIdA(rightReadInThisChunk.getId());
 		edge.setIdB(leftInOther.getId());
@@ -69,6 +68,12 @@ public class Chunk {
 
 	public int getId() {
 		return id;
+	}
+
+	@Override
+	public String toString() {
+		return "Chunk [readsCount=" + reads.size() + ", edgesCount=" + edges.size() + ", id=" + id
+				+ "]";
 	}
 	
 	

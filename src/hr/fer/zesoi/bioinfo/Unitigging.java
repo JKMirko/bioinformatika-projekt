@@ -13,14 +13,14 @@ public class Unitigging {
 	
 	/**
 	 * Simplifies the provided graph by removing transitive edges and merging reads into chunks.
-	 * Note that the input Graph cannot contain reads that are contained by others.
+	 * Note that the input Graph cannot contain reads that are contained by others in its readsInGraph field
 	 * @param graphToSimplitfy Graph to simplify
 	 * @return the simplified graph
 	 */
 	public static OverlapGraph simplifiedOverlapGraphFromGraphWithParameters(OverlapGraph graphToSimplitfy, double epsilon, int alpha){
 		//step 2
 		//transitive edge removal
-		HashMap<Integer, Read> readMap = graphToSimplitfy.getReadMap();
+		HashMap<Integer, Read> readMap = graphToSimplitfy.getReadsInGraph();
 		
 		//for each read, get the f,g and h
 		for(Read f : readMap.values()){
@@ -69,10 +69,6 @@ public class Unitigging {
 		HashMap<Integer, Chunk> chunkMap = new HashMap<Integer, Chunk>();
 		List<Integer> chunkIds = new ArrayList<Integer>();
 		for(Read read : readMap.values()){
-			//do not use reads with no edges
-			if(read.getEdges().size() == 0){
-				continue;
-			}
 			Chunk newChunk =  new Chunk(read);
 			chunkMap.put(new Integer(newChunk.getId()),	newChunk);
 			chunkIds.add(new Integer(newChunk.getId()));
@@ -118,13 +114,22 @@ public class Unitigging {
 					a.mergeWithChunkOnEdge(b, edge);
 					//remove the chunk that we meged into another
 					chunkMap.remove(new Integer(b.getId()));
+					if(a.getId() == currentChunkId.intValue()){
+						//we merged another chunk into this one
+						//and removed the edge on witch they are merged.
+						//reduce the counter so that any edges that are inherited from the b chunk are processed
+					}else{
+						//we merged this chunk into another, stop processing this one
+						break;
+					}
 					//since we removed the current edge, go back one step
 					edgeIterator--;
 				}
 			}
 		}
 		
-		graphToSimplitfy.setChunkMap(chunkMap);
+		graphToSimplitfy.setChunksInGraph(chunkMap);
+		System.out.println("Total chunks "+chunkMap.size());
 		return graphToSimplitfy;
 	}
 	
