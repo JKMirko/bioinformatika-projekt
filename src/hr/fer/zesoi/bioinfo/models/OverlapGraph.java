@@ -6,7 +6,7 @@ import java.util.List;
 public class OverlapGraph {
 		
 	/**
-	 * Holds non-contained reads that are interconnected with each other
+	 * Holds non-contained reads that are may or may not be interconnected with each other
 	 * Key - Read id
 	 * Value - Read
 	 */
@@ -26,23 +26,16 @@ public class OverlapGraph {
 	/**
 	 * List of reads that are not connected in the input ovelap graph
 	 */
-	private List<Read> isolatedReads;
-	/**
-	 * Holds the chunks generated from the reads contained in readsInGraph
-	 * Key - Chunk id
-	 * Value - Chunk
-	 */
+	
 	private HashMap<Integer, Chunk> chunksInGraph;
 	
 	public OverlapGraph(HashMap<Integer, Read> readsInGraph,
 			HashMap<Integer, Read> containedReads,
-			HashMap<Integer, List<Edge>> containmentInfo,
-			List<Read> isolatedReads) {
+			HashMap<Integer, List<Edge>> containmentInfo) {
 		super();
 		this.readsInGraph = readsInGraph;
 		this.containedReads = containedReads;
 		this.containmentInfo = containmentInfo;
-		this.isolatedReads = isolatedReads;
 	}
 
 	public HashMap<Integer, Read> getReadsInGraph() {
@@ -55,10 +48,6 @@ public class OverlapGraph {
 
 	public HashMap<Integer, List<Edge>> getContainmentInfo() {
 		return containmentInfo;
-	}
-
-	public List<Read> getIsolatedReads() {
-		return isolatedReads;
 	}
 
 	public HashMap<Integer, Chunk> getChunksInGraph() {

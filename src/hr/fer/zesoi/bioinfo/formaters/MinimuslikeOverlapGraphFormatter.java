@@ -1,5 +1,6 @@
 package hr.fer.zesoi.bioinfo.formaters;
 
+import hr.fer.zesoi.bioinfo.models.Chunk;
 import hr.fer.zesoi.bioinfo.models.Edge;
 import hr.fer.zesoi.bioinfo.models.OverlapGraph;
 import hr.fer.zesoi.bioinfo.models.Read;
@@ -8,7 +9,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -106,12 +109,10 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		for(Edge edge : edgesFromFile){
 			Integer idA = new Integer(edge.getIdA());
 			Integer idB = new Integer(edge.getIdB());
-//			System.out.println("Edge : "+edge);
 			//do not add edges for contained reads - same as removing them
 			if(containedReadsIds.contains(idA) || containedReadsIds.contains(idB)){
 				continue;
 			}
-//			System.out.println("Adding");
 			Read a = readMap.get(idA);
 			Read b = readMap.get(idB);
 			//calculate the edge length
@@ -120,22 +121,8 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 			a.addEdge(edge);
 			b.addEdge(edge);
 		}
-
-		//separate the reads into different sets
-		HashMap<Integer, Read> readsInGraph = new HashMap<Integer, Read>();
-		List<Read> isolatedReads = new LinkedList<Read>();
-		//consider making this more memory efficient - memory spike could happen here
-		for(Read read : readMap.values()){
-			if(read.getEdges().size() == 0){
-				//isolated read
-				isolatedReads.add(read);
-			}else{
-				//connected read
-				readsInGraph.put(new Integer(read.getId()), read);
-			}
-		}
 		
-		return new OverlapGraph(readsInGraph, containedReads, containmentInfo, isolatedReads);
+		return new OverlapGraph(readMap, containedReads, containmentInfo);
 	}
 	
 	/**
@@ -175,10 +162,24 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		if(ahg * bhg <= 0){
 			//add the edge to set
 			//TODO add containment data calculations
+			Edge edgeToAdd = null;
+			Integer idOfTheReadThatContains = null;
+			Integer idOfTheReadThatIsContained = null;
 			if(ahg <= 0){
-				containedReadsIds.add(idA);
+				idOfTheReadThatContains = idB;
+				idOfTheReadThatIsContained = idA;
 			}else{
-				containedReadsIds.add(idB);
+				idOfTheReadThatContains = idA;
+				idOfTheReadThatIsContained = idB;
+			}
+			containedReadsIds.add(idOfTheReadThatIsContained);
+			edgeToAdd = new Edge(idA.intValue(), idB.intValue(), Math.abs(ahg), Math.abs(bhg), true, true);
+			if(containmentInfo.get(idOfTheReadThatContains) == null){
+				List<Edge> edgeList = new ArrayList<Edge>();
+				edgeList.add(edgeToAdd);
+				containmentInfo.put(idOfTheReadThatContains, edgeList);
+			}else{
+				containmentInfo.get(idOfTheReadThatContains).add(edgeToAdd);
 			}
 			return null;
 		}
@@ -251,24 +252,43 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 	@Override
 	public void formatAndWriteOverlapGraph(OverlapGraph graph,
 			Writer layoutInformationWriter, Writer overlapInformationWriter)
-			throws IOException, FormatterException {
-//		PrintWriter printWriter = new PrintWriter(writer);
-//		for(Chunk chunk : graph.getChunkMap().values()){
-//			printWriter.println("{LAY");
-//			List<Read> reads = chunk.getReads();
-//			for(int readIterator = 0; readIterator < reads.size(); readIterator++){
-//				if(readIterator == chunk.getReads().size()){
-//					//last read
-//				}else{
-//					//determine the orientation
-//					int nextReadId = reads.get(readIterator + 1).getId();
-//					Edge edgeConnectingWithTheNextEdge = null;
-//					
-//				}
-//			}
-//			printWriter.println("}");
-//		}
-//		printWriter.close();
+			throws IOException, FormatterException {		
+		//write the layout information to the output
+		PrintWriter printWriter = new PrintWriter(layoutInformationWriter);
+		//get the reads
+		HashMap<Integer, List<Edge>> containmentInfo = graph.getContainmentInfo();
+		HashMap<Integer, Read> containedReads = graph.getContainedReads();
+		
+		for(Chunk chunk : graph.getChunksInGraph().values()){
+			printWriter.println("{LAY");
+			List<Read> reads = chunk.getReads();
+			for(int readIterator = 0; readIterator < reads.size(); readIterator++){
+				printWriter.println("{KAVELJ");
+				Read read = reads.get(readIterator);
+				int offset = 0;
+				if(readIterator == chunk.getReads().size() - 1){
+					//last read
+				}else{
+					//determine the orientation
+					int nextReadId = reads.get(readIterator + 1).getId();
+					Edge edgeConnectingWithTheNextEdge = null;
+					
+				}
+				
+				printWriter.println("NISAM CONTAINAN!");
+				printWriter.println("}");
+				//check for contained reads
+				if(containmentInfo.containsKey(new Integer(read.getId()))){
+					for(Edge edgeThatRepresentsContainment : containmentInfo.get(new Integer(read.getId()))){
+						printWriter.println("{KAVELJ");
+						printWriter.println("CONTAINAN SAM!");
+						printWriter.println("}");
+					}
+				}
+			}
+			printWriter.println("}");
+		}
+		printWriter.close();
 	}
 
 
