@@ -129,7 +129,6 @@ public class Unitigging {
 		}
 		
 		graphToSimplitfy.setChunksInGraph(chunkMap);
-		System.out.println("Total chunks "+chunkMap.size());
 		return graphToSimplitfy;
 	}
 	
