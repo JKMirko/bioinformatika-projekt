@@ -28,6 +28,9 @@ The program has 2 required and 3 optional arguments.
 For additional reference about **ε** and **α** see [this paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.37.9658&rep=rep1&type=pdf) (pg. 13).
 <br />All optional argument names are case insensitive.
 
+-----------------------------------
+Use **java -jar unitig.jar** to run.
+
 **Valid example:**
 <br />java -jar unitig.jar overlaps.afg reads.2k.10x.fasta -oLayout=outputLayout.afg -oOverlaps=outputOverlaps.afg -epsilon=0.1 -alpha=3
 
