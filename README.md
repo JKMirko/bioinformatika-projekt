@@ -31,8 +31,10 @@ For additional reference about **ε** and **α** see [this paper](http://citesee
 -----------------------------------
 Use **java -jar unitig.jar** to run.
 
+You can find example overlaps and reads files in the testData folder.
+
 **Valid example:**
-<br />java -jar unitig.jar overlaps.afg reads.2k.10x.fasta -oLayout=outputLayout.afg -oOverlaps=outputOverlaps.afg -epsilon=0.1 -alpha=3
+<br />java -jar unitig.jar testData/overlaps.afg testData/reads.2k.10x.fasta -oLayout=outputLayout.afg -oOverlaps=outputOverlaps.afg -epsilon=0.1 -alpha=3
 
 -----------------------------------
 [#24hBioInfo](https://www.facebook.com/24hprojectchallenge "Check out the construction of this awesome project!")
