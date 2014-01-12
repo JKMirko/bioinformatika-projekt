@@ -10,7 +10,7 @@ public class Chunk {
 	private int id;
 	
 	/**
-	 * Creaes a chunk that contains just one read
+	 * Creates a chunk that contains just one read
 	 * @param initialRead Initial read
 	 */
 	public Chunk(Read initialRead){
@@ -58,6 +58,11 @@ public class Chunk {
 		}
 	}
 	
+	/**
+	 * Gets the Edge object representing the edge between the provided chunk
+	 * @param another Another chunk
+	 * @return Edge between chunks or null
+	 */
 	public Edge getEdgeWithChunk(Chunk another){
 		for(Edge edge : this.edges){
 			if((edge.getIdA() == this.id && edge.getIdB() == another.getId())

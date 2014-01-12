@@ -40,6 +40,11 @@ public class Read {
 		this.edges.clear();
 	}
 	
+	/**
+	 * Gets the Edge object that represents the edge between the provided read
+	 * @param another Another read
+	 * @return Edge between reads or null
+	 */
 	public Edge getEdgeWithRead(Read another){
 		for(Edge edge : this.edges){
 			if((edge.getIdA() == this.id && edge.getIdB() == another.getId())

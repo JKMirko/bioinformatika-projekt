@@ -2,7 +2,7 @@ package hr.fer.zesoi.bioinfo.formaters;
 
 /**
  * Exception type used to indicate a formatter specific exception
- * @author Najbolji bioInfo tim
+ * @author The best bioInfo team ever!
  *
  */
 public class FormatterException extends RuntimeException {
