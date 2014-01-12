@@ -29,7 +29,7 @@ For additional reference about **ε** and **α** see [this paper](http://citesee
 <br />All optional argument names are case insensitive.
 
 **Valid example:**
-<br />run overlaps.afg reads.2k.10x.fasta -oLayout=outputLayout.txt -oOverlaps=outputOverlaps.afg -epsilon=0.7 -alpha=2
+<br />java -jar unitig.jar overlaps.afg reads.2k.10x.fasta -oLayout=outputLayout.afg -oOverlaps=outputOverlaps.afg -epsilon=0.1 -alpha=3
 
 -----------------------------------
 [#24hBioInfo](https://www.facebook.com/24hprojectchallenge "Check out the construction of this awesome project!")
