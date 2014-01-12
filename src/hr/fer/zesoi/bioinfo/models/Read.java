@@ -40,6 +40,16 @@ public class Read {
 		this.edges.clear();
 	}
 	
+	public Edge getEdgeWithRead(Read another){
+		for(Edge edge : this.edges){
+			if((edge.getIdA() == this.id && edge.getIdB() == another.getId())
+					|| (edge.getIdB() == this.id && edge.getIdA() == another.getId())){
+				return edge;
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	public int hashCode() {
 		return this.id;

@@ -2,6 +2,7 @@ package hr.fer.zesoi.bioinfo.formaters;
 
 import hr.fer.zesoi.bioinfo.models.Chunk;
 import hr.fer.zesoi.bioinfo.models.Edge;
+import hr.fer.zesoi.bioinfo.models.EdgeType;
 import hr.fer.zesoi.bioinfo.models.OverlapGraph;
 import hr.fer.zesoi.bioinfo.models.Read;
 
@@ -82,25 +83,23 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		HashMap<Integer, Read> containedReads = new HashMap<Integer, Read>();
 		reader = new BufferedReader(new FileReader(readsFile));
 		String readLine = null;
-		boolean isLineOdd = true;
+		
 		while((readLine = reader.readLine()) != null){
-			if(isLineOdd){
-				//read info
-				//example : >small/reads.2k.10x_000000000_000000001_L000001549:000000029-000001577:F
-				String[] splitted = readLine.split("_");
-				try {
-					Integer id = Integer.parseInt(splitted[splitted.length - 2]);
-					int length = Integer.parseInt(splitted[splitted.length -1].split(":")[0].substring(1));
-					if(containedReadsIds.contains(id)){
-						containedReads.put(id, new Read(id.intValue(), length));
-					}else{
-						readMap.put(id, new Read(id.intValue(), length));
-					}
-				} catch (Exception e) {
-					throw new FormatterException("Invalid read info format!");
+			String actualRead = reader.readLine();
+			//read info
+			//example : >small/reads.2k.10x_000000000_000000001_L000001549:000000029-000001577:F
+			String[] splitted = readLine.split("_");
+			try {
+				Integer id = Integer.parseInt(splitted[splitted.length - 2]);
+				int length = actualRead.length();
+				if(containedReadsIds.contains(id)){
+					containedReads.put(id, new Read(id.intValue(), length));
+				}else{
+					readMap.put(id, new Read(id.intValue(), length));
 				}
+			} catch (Exception e) {
+				throw new FormatterException("Invalid read info format!");
 			}
-			isLineOdd = !isLineOdd;
 		}
 		
 		reader.close();
@@ -157,12 +156,78 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		} catch (NumberFormatException e) {
 			throw new FormatterException("Read ids in the \"rds\" paramamter must be integers!");
 		}
+			
+		boolean sufA = false;
+		boolean sufB = false;
+		EdgeType type;
+		String adj = readMap.get("adj");
+		//get sufs. If statement in this section can be cut in half, but this improves readability
+		if(adj.equals("N")){
+			if(ahg >= 0 && bhg >= 0){
+				sufA = true;
+				sufB = false;
+			}else if(ahg <= 0 && bhg <= 0){
+				sufA = false;
+				sufB = true;
+			}else if(ahg >= 0 && bhg <= 0){
+				sufA = false;
+				sufB = true;
+			}else if(ahg <= 0 && bhg >= 0){
+				sufA = true;
+				sufB = false;
+			}
+			type = EdgeType.NORMAL;
+		}else if(adj.equals("A")){
+			if(ahg >= 0 && bhg >= 0){
+				sufA = false;
+				sufB = true;
+			}else if(ahg <= 0 && bhg <= 0){
+				sufA = true;
+				sufB = false;
+			}else if(ahg >= 0 && bhg <= 0){
+				sufA = false;
+				sufB = true;
+			}else if(ahg <= 0 && bhg >= 0){
+				sufA = true;
+				sufB = false;
+			}
+			type = EdgeType.ANTI_NORMAL;
+		}else if(adj.equals("I")){
+			if(ahg >= 0 && bhg >= 0){
+				sufA = true;
+				sufB = true;
+			}else if(ahg <= 0 && bhg <= 0){
+				sufA = false;
+				sufB = false;
+			}else if(ahg >= 0 && bhg <= 0){
+				sufA = false;
+				sufB = true;
+			}else if(ahg <= 0 && bhg >= 0){
+				sufA = true;
+				sufB = false;
+			}
+			type = EdgeType.INNIE;
+		}else if(adj.equals("O")){
+			if(ahg >= 0 && bhg >= 0){
+				sufA = false;
+				sufB = false;
+			}else if(ahg <= 0 && bhg <= 0){
+				sufA = true;
+				sufB = true;
+			}else if(ahg >= 0 && bhg <= 0){
+				sufA = false;
+				sufB = true;
+			}else if(ahg <= 0 && bhg >= 0){
+				sufA = true;
+				sufB = false;
+			}
+			type = EdgeType.OUTIE;
+		}else{
+			throw new FormatterException("Excpected \"N\",\"A\",\"I\" or \"O\" for adj, got \""+adj+"\"");
+		}
 		
 		//remove edges that represent containment
 		if(ahg * bhg <= 0){
-			//add the edge to set
-			//TODO add containment data calculations
-			Edge edgeToAdd = null;
 			Integer idOfTheReadThatContains = null;
 			Integer idOfTheReadThatIsContained = null;
 			if(ahg <= 0){
@@ -173,7 +238,7 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 				idOfTheReadThatIsContained = idB;
 			}
 			containedReadsIds.add(idOfTheReadThatIsContained);
-			edgeToAdd = new Edge(idA.intValue(), idB.intValue(), Math.abs(ahg), Math.abs(bhg), true, true);
+			Edge edgeToAdd = new Edge(idA.intValue(), idB.intValue(), ahg, bhg, sufA, sufB, type);
 			if(containmentInfo.get(idOfTheReadThatContains) == null){
 				List<Edge> edgeList = new ArrayList<Edge>();
 				edgeList.add(edgeToAdd);
@@ -183,53 +248,8 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 			}
 			return null;
 		}
-			
-		boolean sufA = false;
-		boolean sufB = false;
-		String adj = readMap.get("adj");
-		//get sufs
-		if(adj.equals("N")){
-			if(ahg > 0 && bhg > 0){
-				sufA = true;
-				sufB = false;
-			}else{
-				sufA = false;
-				sufB = true;
-			}
-		}else if(adj.equals("A")){
-			if(ahg > 0 && bhg > 0){
-				sufA = false;
-				sufB = true;
-			}else{
-				sufA = true;
-				sufB = false;
-			}
-		}else if(adj.equals("I")){
-			if(ahg > 0 && bhg > 0){
-				sufA = true;
-				sufB = true;
-			}else{
-				sufA = false;
-				sufB = false;
-			}
-		}else if(adj.equals("O")){
-			if(ahg > 0 && bhg > 0){
-				sufA = false;
-				sufB = false;
-			}else{
-				sufA = true;
-				sufB = true;
-			}
-		}else{
-			throw new FormatterException("Excpected \"N\",\"A\",\"I\" or \"O\" for adj, got \""+adj+"\"");
-		}
 		
-		
-		if(splitted.length != 2){
-			throw new FormatterException("Overlap requires 2 reads!");
-		}
-		
-		return new Edge(idA, idB, Math.abs(ahg), Math.abs(bhg), sufA, sufB);
+		return new Edge(idA, idB, ahg, bhg, sufA, sufB, type);
 		
 	}
 	
@@ -253,6 +273,12 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 	public void formatAndWriteOverlapGraph(OverlapGraph graph,
 			Writer layoutInformationWriter, Writer overlapInformationWriter)
 			throws IOException, FormatterException {		
+		this.writeLayoutInformationFromGraphIntoWriter(graph, layoutInformationWriter);
+		this.writeOverlapInformationFromGraphIntoWriter(graph, overlapInformationWriter);
+	}
+	
+	private void writeLayoutInformationFromGraphIntoWriter(OverlapGraph graph,
+			Writer layoutInformationWriter) throws IOException, FormatterException {
 		//write the layout information to the output
 		PrintWriter printWriter = new PrintWriter(layoutInformationWriter);
 		//get the reads
@@ -262,36 +288,167 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		for(Chunk chunk : graph.getChunksInGraph().values()){
 			printWriter.println("{LAY");
 			List<Read> reads = chunk.getReads();
-			for(int readIterator = 0; readIterator < reads.size(); readIterator++){
-				printWriter.println("{KAVELJ");
-				Read read = reads.get(readIterator);
-				int offset = 0;
-				if(readIterator == chunk.getReads().size() - 1){
-					//last read
-				}else{
-					//determine the orientation
-					int nextReadId = reads.get(readIterator + 1).getId();
-					Edge edgeConnectingWithTheNextEdge = null;
-					
+			//decide if the first read in chunk is right oriented (-------->)
+			//we call this variable isLASTREAD because we will use it to orient the reads inside chunks
+			boolean isLastReadRightOriented = false;
+			
+			//we have 3 cases
+			if(reads.size() > 1){
+				//we can get the orientation from the reads inside the chunk
+				Read first = reads.get(0);
+				
+				Edge edgeBetweenReads = first.getEdgeWithRead(reads.get(1));
+				if(edgeBetweenReads == null){
+					throw new IllegalStateException("Unexpected state!");
 				}
 				
-				printWriter.println("NISAM CONTAINAN!");
-				printWriter.println("}");
+				isLastReadRightOriented = this.getIsIdRightOrientedInEdge(first.getId(), edgeBetweenReads);
+				
+			}else if(chunk.getEdges().size() > 0){
+				//only one read in the chunk, we can get the orientation from the edges between chunks
+				Edge anyEdgeWithCurrentChunk = chunk.getEdges().get(0);
+				
+				isLastReadRightOriented = this.getIsIdRightOrientedInEdge(chunk.getId(), anyEdgeWithCurrentChunk);
+			}else{
+				//one read in chunk, with no edges between chunks.
+				isLastReadRightOriented = true;
+			}
+			int endOfLastRead = 0;
+			for(int readIterator = 0; readIterator < reads.size(); readIterator++){
+				printWriter.println("{TLE");
+				Read read = reads.get(readIterator);
+				//initialize them so Java has its peace
+				int currentOffset = 0;
+				boolean isThisReadRightOriented = false;
+				if(readIterator == 0){
+					//first read, use the "last orientation"
+					isThisReadRightOriented = isLastReadRightOriented;
+					currentOffset = 0;
+				}else{
+					//determine the orientation
+					Read previousRead = reads.get(readIterator - 1);
+					Edge edgeWithPreviousRead = read.getEdgeWithRead(previousRead);
+					if(edgeWithPreviousRead == null){
+						throw new IllegalStateException("Unexpected state!");
+					}
+					
+					//get the orientation of this read
+					switch (edgeWithPreviousRead.getType()) {
+					case NORMAL:
+					case ANTI_NORMAL:
+						isThisReadRightOriented = isLastReadRightOriented;
+						break;
+					case INNIE:
+					case OUTIE:
+						isThisReadRightOriented = !isLastReadRightOriented;
+						break;
+					}
+					//get the current offset
+					if(edgeWithPreviousRead.getIdA() == read.getId()){
+						//this is a, deduct the B hang
+						currentOffset = endOfLastRead - edgeWithPreviousRead.getHangB();
+					}else{
+						//this is b, deduct the A hang
+						currentOffset = endOfLastRead - edgeWithPreviousRead.getHangA();
+					}
+				}
+				
+				//print info about this read
+				this.writeTLEInfoInWriter(printWriter, read.getId(), currentOffset,
+						isThisReadRightOriented ? 0 : read.getLength(), isThisReadRightOriented ? read.getLength() : 0);
 				//check for contained reads
 				if(containmentInfo.containsKey(new Integer(read.getId()))){
 					for(Edge edgeThatRepresentsContainment : containmentInfo.get(new Integer(read.getId()))){
-						printWriter.println("{KAVELJ");
-						printWriter.println("CONTAINAN SAM!");
-						printWriter.println("}");
+						Read containedRead = null;
+						//get the read witch is contained
+						if(edgeThatRepresentsContainment.getIdA() == read.getId()){
+							containedRead = containedReads.get(new Integer(edgeThatRepresentsContainment.getIdB()));
+						}else{
+							containedRead = containedReads.get(new Integer(edgeThatRepresentsContainment.getIdA()));
+						}
+						//get its orientation
+						boolean isContainedReadRightOriented = this.getIsIdRightOrientedInEdge(containedRead.getId(), edgeThatRepresentsContainment);
+						//get the offset
+						int containedReadOffset = 0;
+						if(edgeThatRepresentsContainment.getIdA() == containedRead.getId()){
+							containedReadOffset = currentOffset + edgeThatRepresentsContainment.getHangB();
+						}else{
+							containedReadOffset = currentOffset + edgeThatRepresentsContainment.getHangA();
+						}
+						//write
+						this.writeTLEInfoInWriter(printWriter, containedRead.getId(), containedReadOffset,
+								isContainedReadRightOriented ? 0 : containedRead.getLength(), isContainedReadRightOriented ? containedRead.getLength() : 0);
 					}
 				}
+				
+				//prepare for next iteration
+				isLastReadRightOriented = isThisReadRightOriented;
+				endOfLastRead = currentOffset + read.getLength();
+				
 			}
 			printWriter.println("}");
 		}
 		printWriter.close();
 	}
 
-
+	private void writeOverlapInformationFromGraphIntoWriter(OverlapGraph graph,
+			Writer overlapInformationWriter) throws IOException, FormatterException{
+		PrintWriter printWriter = new PrintWriter(overlapInformationWriter);
+		for(Chunk chunk : graph.getChunksInGraph().values()){
+			for(Edge edge : chunk.getEdges()){
+				if(edge.getIdA() == chunk.getId()){
+					//since every edge is in the list of both chunks, use this check to avoid double printing
+					printWriter.println("{OVL");
+					printWriter.println("adj:"+EdgeType.edgeTypeToString(edge.getType()));
+					printWriter.println("rds:"+edge.getIdA() + "," + edge.getIdB());
+					printWriter.println("ahg:"+edge.getOriginalHangA());
+					printWriter.println("bhg:"+edge.getOriginalHangB());
+					printWriter.println("}");
+				}
+			}
+		}
+		printWriter.close();
+	}
 	
+	/**
+	 * Writes the TLE info into the specified writer
+	 * @param printWriter Writer into witch to write
+	 * @param id Id of the read we want to write
+	 * @param offset Offset of the read in the chunk
+	 * @param start Start of the usable part of the read
+	 * @param end End of the usable part of the read
+	 * @throws IOException Throws an exceptin if any writing errors occur
+	 */
+	private void writeTLEInfoInWriter(PrintWriter printWriter, int id, int offset, int start, int end) throws IOException{
+		printWriter.println("{TLE");
+		printWriter.println("src:"+id);
+		printWriter.println("off:"+offset);
+		printWriter.println("clr:"+start + ","+end);
+		printWriter.println("}");
+	}
+
+	/**
+	 * Gets the orientation of the read in the specified edge
+	 * @param id Id of the read
+	 * @param edge Edge from witch we want the orientation
+	 * @return true if the read is right oriented, false otherwise
+	 */
+	private boolean getIsIdRightOrientedInEdge(int id, Edge edge){
+		if(id == edge.getIdA()){
+			//id is A
+			if(edge.getType() == EdgeType.NORMAL || edge.getType() == EdgeType.INNIE){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			//id is B
+			if(edge.getType() == EdgeType.NORMAL || edge.getType() == EdgeType.OUTIE){
+				return true;
+			}else{
+				return false;
+			}
+		}
+	}
 
 }

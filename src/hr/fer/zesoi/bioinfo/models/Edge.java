@@ -8,22 +8,25 @@ public class Edge {
 	
 	private int idA;
 	private int idB;
-	private int hangA;
-	private int hangB;
+	private int originalHangA;
+	private int originalHangB;
 	private boolean sufA;
 	private boolean sufB;
 	
+	private EdgeType type;
+	
 	private int length;
 
-	public Edge(int idA, int idB, int hangA, int hangB, boolean sufA,
-			boolean sufB) {
+	public Edge(int idA, int idB, int originalHangA, int originalHangB, boolean sufA,
+			boolean sufB, EdgeType type) {
 		super();
 		this.idA = idA;
 		this.idB = idB;
-		this.hangA = hangA;
-		this.hangB = hangB;
+		this.originalHangA = originalHangA;
+		this.originalHangB = originalHangB;
 		this.sufA = sufA;
 		this.sufB = sufB;
+		this.type = type;
 	}
 
 	public int getIdA() {
@@ -43,11 +46,19 @@ public class Edge {
 	}
 
 	public int getHangA() {
-		return hangA;
+		return this.originalHangA < 0 ? -this.originalHangA : this.originalHangA;
+	}
+	
+	public int getOriginalHangA(){
+		return this.originalHangA;
 	}
 
 	public int getHangB() {
-		return hangB;
+		return this.originalHangB < 0 ? -this.originalHangB : this.originalHangB;
+	}
+	
+	public int getOriginalHangB(){
+		return this.originalHangB;
 	}
 
 	public boolean isSufA() {
@@ -66,10 +77,14 @@ public class Edge {
 		this.length = length;
 	}
 
+	public EdgeType getType() {
+		return type;
+	}
+
 	@Override
 	public String toString() {
-		return "Edge [idA=" + idA + ", idB=" + idB + ", hangA=" + hangA
-				+ ", hangB=" + hangB + ", sufA=" + sufA + ", sufB=" + sufB
+		return "Edge [idA=" + idA + ", idB=" + idB + ", hangA=" + this.getHangA()
+				+ ", hangB=" + this.getHangB() + ", sufA=" + sufA + ", sufB=" + sufB
 				+ ", length=" + length + "]";
 	}
 	

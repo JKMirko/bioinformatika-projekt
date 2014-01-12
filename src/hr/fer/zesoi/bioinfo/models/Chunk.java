@@ -57,6 +57,16 @@ public class Chunk {
 			this.edges.add(edgeInOtherChunk);
 		}
 	}
+	
+	public Edge getEdgeWithChunk(Chunk another){
+		for(Edge edge : this.edges){
+			if((edge.getIdA() == this.id && edge.getIdB() == another.getId())
+					|| (edge.getIdB() == this.id && edge.getIdA() == another.getId())){
+				return edge;
+			}
+		}
+		return null;
+	}
 
 	public List<Read> getReads() {
 		return reads;

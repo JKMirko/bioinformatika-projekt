@@ -120,7 +120,7 @@ public class Starter {
 			if(outputOverlapsFilePath != null){
 				//the user specified the layout file
 				try {
-					overlapWriter = new BufferedWriter(new FileWriter(new File(overlapInformationFilePath), false));
+					overlapWriter = new BufferedWriter(new FileWriter(new File(outputOverlapsFilePath), false));
 				} catch (IOException e) {
 					System.err.println("Error while getting a connection to overlap output file!");
 					return;
