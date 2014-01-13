@@ -287,6 +287,7 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		
 		for(Chunk chunk : graph.getChunksInGraph().values()){
 			printWriter.println("{LAY");
+			printWriter.println("src:"+chunk.getId());
 			List<Read> reads = chunk.getReads();
 			//decide if the first read in chunk is right oriented (-------->)
 			//we call this variable isLASTREAD because we will use it to orient the reads inside chunks
