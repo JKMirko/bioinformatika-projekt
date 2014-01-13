@@ -1,6 +1,9 @@
 bioinformatika-projekt
 ======================
 
+This program was created as a project assignment for Bioinformatics class at Faculty of Electrical Engineering and Computing, University of Zagreb.
+
+
 Run instructions
 ---------------------
 
