@@ -6,8 +6,8 @@ Run instructions
 
 SYNOPSIS
 ```shell
-$ java -jar unitig.jar path_to_overlaps path_to_reads [-oLayout=outputLayout.afg] [-oOverlaps=outputOverlaps.afg] \
-> [-epsilon=0.1] [-alpha=3]
+$ java -jar unitig.jar path_to_overlaps path_to_reads [-oLayout=outputLayout.afg] \
+> [-oOverlaps=outputOverlaps.afg] [-epsilon=0.1] [-alpha=3]
 ```
 
 The program has 2 required and 4 optional arguments.
@@ -20,10 +20,10 @@ The program has 2 required and 4 optional arguments.
 
 ###**Optional:**
 
-* **-oLayout**   -  Specifies *unitig layout file path* in witch the unitig layout will be written. If the file exists, it will be overwritten, if not, it will be created. If this argument is not provided, the unitig layout will be written to the standard output.
+* **-oLayout**   -  Specifies *unitig layout file path* in which the unitig layout will be written. If the file exists, it will be overwritten, if not, it will be created. If this argument is not provided, the unitig layout will be written to the standard output.
 <br />Use **-oLayout=filepath** to specify this argument
 
-* **-oOverlaps** -  Specifies *unitig layout overlaps file path* in witch the overlap information from the unitig layout will be written. The same writing rules apply as in the unitig layout file path argument. 
+* **-oOverlaps** -  Specifies *unitig layout overlaps file path* in which the overlap information from the unitig layout will be written. The same writing rules apply as in the unitig layout file path argument. 
 <br />Use **-oOverlaps=filepath** to specify this argument
 
 * **ε**          -  Real number value from [0,1] interval used in the transitive edge removal. Default is 0.1.
@@ -48,4 +48,3 @@ $ java -jar unitig.jar testData/overlaps.afg testData/reads.2k.10x.fasta -oLayou
 
 -----------------------------------
 [#24hBioInfo](https://www.facebook.com/24hprojectchallenge "Check out the construction of this awesome project!")
-
