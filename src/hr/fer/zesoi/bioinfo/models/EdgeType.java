@@ -1,17 +1,25 @@
 package hr.fer.zesoi.bioinfo.models;
 
 public enum EdgeType {
-	//----->
-	//   ---->
+	/**
+	 * -----><br />
+	 * &nbsp;&nbsp;&nbsp;&nbsp;----->
+	 */
 	NORMAL,
-	// <------
-	//    <----
+	/**
+	 * <-----<br />
+	 * &nbsp;&nbsp;&nbsp;&nbsp;<-----
+	 */
 	ANTI_NORMAL,
-	//----->
-	//   <-----
+	/**
+	 * -----><br />
+	 * &nbsp;&nbsp;&nbsp;&nbsp;<-----
+	 */
 	INNIE,
-	//<------
-	//    ----->
+	/**
+	 * <-----<br />
+	 * &nbsp;&nbsp;&nbsp;&nbsp;----->
+	 */
 	OUTIE;
 	
 	public static String edgeTypeToString(EdgeType type){

@@ -3,29 +3,21 @@ package hr.fer.zesoi.bioinfo.models;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Class holding all the needed data to represent an overlap graph.
+ * When instantiated, the graph is based on reads and their edges.
+ * After the unitigging process, the graph is based on chunks - it's a chunk graph
+ * @author Bioinfo team
+ *
+ */
 public class OverlapGraph {
 		
-	/**
-	 * Holds non-contained reads that are may or may not be interconnected with each other
-	 * Key - Read id
-	 * Value - Read
-	 */
+	
 	private HashMap<Integer, Read> readsInGraph;
-	/**
-	 * Holds the reads that are contained by some other read in the graph
-	 * Key - Read id
-	 * Value Read
-	 */
+	
 	private HashMap<Integer, Read> containedReads;
-	/**
-	 * Holds the containment information..
-	 * Key - id of the read that contains others
-	 * Value - list of edges that represent that containment
-	 */
+	
 	private HashMap<Integer, List<Edge>> containmentInfo;
-	/**
-	 * List of reads that are not connected in the input ovelap graph
-	 */
 	
 	private HashMap<Integer, Chunk> chunksInGraph;
 	
@@ -38,22 +30,51 @@ public class OverlapGraph {
 		this.containmentInfo = containmentInfo;
 	}
 
+	/**
+	 *
+	 * Returns a map containing non-contained reads that may or may not be interconnected with each other
+	 * Key - Read id
+	 * Value - Read
+	 * @return map
+	 */
 	public HashMap<Integer, Read> getReadsInGraph() {
 		return readsInGraph;
 	}
 
+	/**
+	 * Returns a map of reads that are contained by some other read in the graph
+	 * Key - Read id
+	 * Value Read
+	 * @return map
+	 */
 	public HashMap<Integer, Read> getContainedReads() {
 		return containedReads;
 	}
 
+	/**
+	 * Returns the map containing the containment information from the graph
+	 * Key - id of the read that contains others
+	 * Value - list of edges that represent that containment
+	 * @return map
+	 */
 	public HashMap<Integer, List<Edge>> getContainmentInfo() {
 		return containmentInfo;
 	}
 
+	/**
+	 * Returns a map containing chunks that may or may not be interconnected with each other
+	 * Key - Read id
+	 * Value - Chunk
+	 * @return map
+	 */
 	public HashMap<Integer, Chunk> getChunksInGraph() {
 		return chunksInGraph;
 	}
 
+	/**
+	 * Sets the chunks in the read
+	 * @param chunksInGraph Chunk map
+	 */
 	public void setChunksInGraph(HashMap<Integer, Chunk> chunksInGraph) {
 		this.chunksInGraph = chunksInGraph;
 	}

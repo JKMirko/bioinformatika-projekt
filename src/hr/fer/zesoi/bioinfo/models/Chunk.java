@@ -3,6 +3,13 @@ package hr.fer.zesoi.bioinfo.models;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class represents a chunk in the chunk graph. It contains the reads within the chunk,
+ * list of edges with other chunks and a unique id. This class also provides a convenient method
+ * for merging one chunk into another.
+ * @author Bioinfo team
+ *
+ */
 public class Chunk {
 	
 	private List<Read> reads;

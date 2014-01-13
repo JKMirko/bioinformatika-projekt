@@ -19,6 +19,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Concrete implementation of a formatter using the modified minimus input/output
+ * @author Bioinfo team
+ *
+ */
 public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter {
 
 	private BufferedReader reader;
@@ -287,6 +292,7 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		
 		for(Chunk chunk : graph.getChunksInGraph().values()){
 			printWriter.println("{LAY");
+			printWriter.println("src:"+chunk.getId());
 			List<Read> reads = chunk.getReads();
 			//decide if the first read in chunk is right oriented (-------->)
 			//we call this variable isLASTREAD because we will use it to orient the reads inside chunks

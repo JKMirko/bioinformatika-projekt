@@ -6,6 +6,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 
+/**
+ * Interface representing a formatter.
+ * Formatter is used for parsing input data and formating output data.
+ * @author Bioinfo team
+ *
+ */
 public interface IOverlapGraphFormatter {
 		
 	/**

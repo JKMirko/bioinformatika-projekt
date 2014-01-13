@@ -1,2 +1,5 @@
 # Compiled files
 bin/
+# test output files
+testOutput.afg
+testOverlaps.afg
