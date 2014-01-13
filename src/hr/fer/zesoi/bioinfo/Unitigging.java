@@ -9,6 +9,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Class containing the actual unitigging algorithm
+ * @author Bioinfo team
+ *
+ */
 public class Unitigging {
 	
 	/**

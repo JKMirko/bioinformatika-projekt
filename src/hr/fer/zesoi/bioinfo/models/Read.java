@@ -3,7 +3,13 @@ package hr.fer.zesoi.bioinfo.models;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * This class represents a single read. Since we don't need the exact bases in the algorithm,
+ * this class only has the length of the read, its id in the input file, and a list of edges
+ * representing overlaps between reads.
+ * @author Bioinfo team
+ *
+ */
 public class Read {
 
 	private int id;

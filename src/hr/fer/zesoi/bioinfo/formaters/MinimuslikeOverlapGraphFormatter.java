@@ -19,6 +19,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Concrete implementation of a formatter using the modified minimus input/output
+ * @author Bioinfo team
+ *
+ */
 public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter {
 
 	private BufferedReader reader;
