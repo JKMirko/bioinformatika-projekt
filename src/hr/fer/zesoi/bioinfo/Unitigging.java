@@ -42,11 +42,11 @@ public class Unitigging {
 							//got the wanted connection
 							// f <tau> g <tauPrim> h and f <pi> h
 							//check conditions for removal
-							if(tau.isSufB() != tauPrim.isSufA()
-									&& pi.isSufA() == tau.isSufA()
-									&& pi.isSufB() == tauPrim.isSufB()
-									&& valueWithinValues(tau.getHangA() + tauPrim.getHangA(), pi.getHangA() - epsilon * pi.getLength() + alpha, pi.getHangA() + epsilon * pi.getLength() + alpha)
-									&& valueWithinValues(tau.getHangB() + tauPrim.getHangB(), pi.getHangB() - epsilon * pi.getLength() + alpha, pi.getHangB() + epsilon * pi.getLength() + alpha)
+							if(tau.isSufForID(g.getId()) != tauPrim.isSufForID(g.getId())
+									&& pi.isSufForID(f.getId()) == tau.isSufForID(f.getId())
+									&& pi.isSufForID(h.getId()) == tauPrim.isSufForID(h.getId())
+									&& valueWithinValues(tau.getHangForId(f.getId()) + tauPrim.getHangForId(g.getId()), pi.getHangForId(f.getId()) - epsilon * pi.getLength() - alpha, pi.getHangForId(f.getId()) + epsilon * pi.getLength() + alpha)
+									&& valueWithinValues(tau.getHangForId(g.getId()) + tauPrim.getHangForId(h.getId()), pi.getHangForId(h.getId()) - epsilon * pi.getLength() - alpha, pi.getHangForId(h.getId()) + epsilon * pi.getLength() + alpha)
 									){
 								//should remove the edge!
 								pi.shouldBeRemoved = true;
@@ -78,7 +78,7 @@ public class Unitigging {
 			chunkMap.put(new Integer(newChunk.getId()),	newChunk);
 			chunkIds.add(new Integer(newChunk.getId()));
 		}
-		
+
 		for(int chunkIterator = 0;chunkIterator < chunkIds.size(); chunkIterator++){
 			Integer currentChunkId = chunkIds.get(chunkIterator);
 			if(!chunkMap.containsKey(currentChunkId)){
@@ -91,11 +91,13 @@ public class Unitigging {
 				boolean canMergeChunks = true;
 				//check the merging conditions
 				Edge edge = chunk.getEdges().get(edgeIterator);
-				for(Edge edgeInTheTheLeftChunk : chunkMap.get(new Integer(edge.getIdA())).getEdges()){
+				int f = edge.getIdA();
+				int g = edge.getIdB();
+				for(Edge edgeInTheTheLeftChunk : chunkMap.get(new Integer(f)).getEdges()){
 					if(edgeInTheTheLeftChunk == edge){
 						continue;
 					}
-					if(edge.isSufA() == edgeInTheTheLeftChunk.isSufB()){
+					if(edge.isSufForID(f) == edgeInTheTheLeftChunk.isSufForID(f)){
 						canMergeChunks = false;
 						break;
 					}
@@ -103,17 +105,18 @@ public class Unitigging {
 				if(!canMergeChunks){
 					continue;
 				}
-				for(Edge edgeInTheTheRightChunk : chunkMap.get(new Integer(edge.getIdB())).getEdges()){
+				for(Edge edgeInTheTheRightChunk : chunkMap.get(new Integer(g)).getEdges()){
 					if(edgeInTheTheRightChunk == edge){
 						continue;
 					}
-					if(edge.isSufB() == edgeInTheTheRightChunk.isSufA()){
+					if(edge.isSufForID(g) == edgeInTheTheRightChunk.isSufForID(g)){
 						canMergeChunks = false;
 						break;
 					}
 				}
 				//can merge them, do it
 				if(canMergeChunks){
+					
 					Chunk a = chunkMap.get(edge.getIdA());
 					Chunk b = chunkMap.get(edge.getIdB());
 					a.mergeWithChunkOnEdge(b, edge);
@@ -123,12 +126,12 @@ public class Unitigging {
 						//we merged another chunk into this one
 						//and removed the edge on witch they are merged.
 						//reduce the counter so that any edges that are inherited from the b chunk are processed
+						edgeIterator--;
 					}else{
 						//we merged this chunk into another, stop processing this one
 						break;
 					}
-					//since we removed the current edge, go back one step
-					edgeIterator--;
+					
 				}
 			}
 		}

@@ -64,6 +64,17 @@ public class Edge {
 		this.idB = idB;
 	}
 
+	
+	public int getHangForId(int id){
+		if(this.idA == id){
+			return this.getHangA();
+		}else if(this.idB == id){
+			return this.getHangB();
+		}else{
+			throw new RuntimeException("Cannot get the Hang value of a read that is not in the edge!");
+		}
+	}
+	
 	/**
 	 * Gets the hang value of the object associated as A in this Edge
 	 * Hang value represents the number of bases not in the overlap.
@@ -71,7 +82,11 @@ public class Edge {
 	 * @return Hang value
 	 */
 	public int getHangA() {
-		return this.originalHangA < 0 ? -this.originalHangA : this.originalHangA;
+		if(this.originalHangA <= 0 && this.originalHangB <= 0){
+			//have not time to comment this
+			return Math.abs(this.originalHangB);
+		}
+		return Math.abs(this.originalHangA);
 	}
 	
 	/**
@@ -93,7 +108,11 @@ public class Edge {
 	 * @return Hang value
 	 */
 	public int getHangB() {
-		return this.originalHangB < 0 ? -this.originalHangB : this.originalHangB;
+		if(this.originalHangA <= 0 && this.originalHangB <= 0){
+			//have not time to comment this
+			return Math.abs(this.originalHangA);
+		}
+		return Math.abs(this.originalHangB);
 	}
 	
 	/**
@@ -108,6 +127,17 @@ public class Edge {
 		return this.originalHangB;
 	}
 
+	
+	public boolean isSufForID(int id){
+		if(this.idA == id){
+			return this.isSufA();
+		}else if(this.idB == id){
+			return this.isSufB();
+		}else{
+			throw new RuntimeException("Cannot get the suf value of a read that is not in the edge!");
+		}
+	}
+	
 	/**
 	 * Value indicating the direction of the object associated as A in this Edge
 	 * @return true if the part of the object associated as A in this Edge contained in this Edge is its suffix, false otherwise

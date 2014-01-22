@@ -50,6 +50,10 @@ public class Chunk {
 		//remove the edge from chunks
 		this.edges.remove(edge);
 		chunk.edges.remove(edge);
+		if(this == chunk){
+			System.out.println("SAM SA SOBOM!");
+			System.out.println("EDGE "+edge);
+		}
 		//add the reads from other chunk to this one
 		for(Read readInOtherChunk : chunk.reads){
 			this.reads.add(readInOtherChunk);
