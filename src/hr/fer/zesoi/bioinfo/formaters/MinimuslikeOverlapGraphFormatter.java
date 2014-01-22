@@ -321,7 +321,6 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 			}
 			int endOfLastRead = 0;
 			for(int readIterator = 0; readIterator < reads.size(); readIterator++){
-				printWriter.println("{TLE");
 				Read read = reads.get(readIterator);
 				//initialize them so Java has its peace
 				int currentOffset = 0;
