@@ -290,6 +290,11 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 		HashMap<Integer, List<Edge>> containmentInfo = graph.getContainmentInfo();
 		HashMap<Integer, Read> containedReads = graph.getContainedReads();
 		
+		//there are situations in witch one Read is contained in multiple chunks.
+		//we cannot allow the same read multiple times in the output
+		//use this set to track printed contained reads by their ID
+		Set<Integer> printedContainedReads = new HashSet<Integer>();
+		
 		for(Chunk chunk : graph.getChunksInGraph().values()){
 			printWriter.println("{LAY");
 			printWriter.println("src:"+chunk.getId());
@@ -371,6 +376,10 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 						}else{
 							containedRead = containedReads.get(new Integer(edgeThatRepresentsContainment.getIdA()));
 						}
+						//check if printed it already
+						if(printedContainedReads.contains(containedRead.getId())){
+							continue;
+						}
 						//get its orientation
 						boolean isContainedReadRightOriented = this.getIsIdRightOrientedInEdge(containedRead.getId(), edgeThatRepresentsContainment);
 						//get the offset
@@ -383,6 +392,8 @@ public class MinimuslikeOverlapGraphFormatter implements IOverlapGraphFormatter 
 						//write
 						this.writeTLEInfoInWriter(printWriter, containedRead.getId(), containedReadOffset,
 								isContainedReadRightOriented ? 0 : containedRead.getLength(), isContainedReadRightOriented ? containedRead.getLength() : 0);
+						//mark as printed
+						printedContainedReads.add(containedRead.getId());
 					}
 				}
 				
